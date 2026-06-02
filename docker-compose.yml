@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: lobo
+      POSTGRES_PASSWORD: lobo
+      POSTGRES_DB: lobo
+    ports:
+      - "5432:5432"
+    volumes:
+      - lobo_pg:/var/lib/postgresql/data
+
+volumes:
+  lobo_pg:
