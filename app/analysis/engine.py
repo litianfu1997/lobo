@@ -2,6 +2,8 @@ import json
 
 from app.analysis.features import FEATURE_KEYS
 from app.analysis.scoring import score_to_level
+from app.analysis.prompt import build_messages
+from app.analysis.deepseek_client import DeepSeekClient
 
 _POSITION_FIELDS = [
     "org_name", "position_name", "major_req", "age_req",
@@ -49,3 +51,9 @@ def parse_analysis(raw: str) -> dict:
             "highlights": highlights,
         },
     }
+
+
+def analyze(text: str, client=None) -> dict:
+    client = client or DeepSeekClient()
+    raw = client.complete(build_messages(text))
+    return parse_analysis(raw)

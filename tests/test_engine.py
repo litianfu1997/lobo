@@ -62,3 +62,23 @@ def test_raises_on_missing_score():
     bad = json.dumps({"position": {}, "hit_features": [], "reasoning": "", "highlights": []})
     with pytest.raises(ValueError):
         parse_analysis(bad)
+
+
+from app.analysis.engine import analyze
+
+
+class _StubClient:
+    def __init__(self, content): self._content = content; self.messages = None
+    def complete(self, messages):
+        self.messages = messages
+        return self._content
+
+
+def test_analyze_uses_client_and_returns_structure():
+    content = _raw(suspicion_score=75)
+    client = _StubClient(content)
+    result = analyze("某公告文本", client=client)
+    assert result["analysis"]["suspicion_score"] == 75
+    assert result["analysis"]["level"] == "high"
+    # 公告文本应出现在发给模型的最后一条消息里
+    assert "某公告文本" in client.messages[-1]["content"]
