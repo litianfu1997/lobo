@@ -9,6 +9,7 @@ _SYSTEM = """你是分析中国事业单位、国企招聘公告是否存在"萝
 1. 客观中立，只依据公告文本给出依据，不臆断、不针对具体个人。
 2. 用"疑似"而非确定性结论；你的输出仅供参考。
 3. 依据下列特征清单逐项判断命中情况，命中越多、越极端，疑似度越高。
+4. 关于年龄判断：常规招聘公告中的"XX周岁以下"（如35周岁以下、30周岁以下）、"XX-XX岁"（区间≥5年）属正常限制，不应标记为 precise_age。只有当年龄区间窄于2年、精确到月/日、或限定了特定出生年月时，才判定命中 precise_age。
 
 特征清单：
 {checklist}
@@ -47,6 +48,42 @@ _FEWSHOT_ASSISTANT = json.dumps({
     ],
 }, ensure_ascii=False)
 
+_FEWSHOT_USER_ACADEMIC = (
+    "某高校招聘青年研究员1名，要求数学专业博士，"
+    "曾获教育部高等学校科学研究优秀成果奖（科学技术）二等奖及以上，"
+    "在全国大学生数学竞赛中获得全国前10名，"
+    "发表过关于'张量范畴上的拓扑量子场论'方向的论文不少于2篇，"
+    "且至少1篇发表于《数学年刊》或CSSCI核心期刊。"
+)
+
+_FEWSHOT_ASSISTANT_ACADEMIC = json.dumps({
+    "position": {
+        "org_name": "某高校", "position_name": "青年研究员",
+        "major_req": "数学专业", "age_req": None,
+        "education_req": "博士", "experience_req": None,
+        "cert_req": None, "headcount": 1,
+    },
+    "suspicion_score": 85,
+    "hit_features": [
+        {"key": "specific_award_name", "evidence": "指定教育部优秀成果奖二等奖及以上",
+         "quote": "教育部高等学校科学研究优秀成果奖（科学技术）二等奖及以上"},
+        {"key": "competition_ranking", "evidence": "要求全国大学生数学竞赛全国前10名",
+         "quote": "全国大学生数学竞赛中获得全国前10名"},
+        {"key": "specific_publication", "evidence": "论文主题限定为极窄方向",
+         "quote": "关于'张量范畴上的拓扑量子场论'方向的论文不少于2篇"},
+        {"key": "specific_journal", "evidence": "限定期刊名称和级别",
+         "quote": "至少1篇发表于《数学年刊》或CSSCI核心期刊"},
+        {"key": "few_slots_many_limits", "evidence": "1人岗位堆叠多项成果要求",
+         "quote": "招聘青年研究员1名"},
+    ],
+    "reasoning": "该岗位要求特定奖项名称、特定竞赛名次、极窄方向的论文主题和特定期刊，"
+                 "多重成果要求高度叠加，理论上同时满足的候选人极少，疑似定向招聘。",
+    "highlights": [
+        {"text": "张量范畴上的拓扑量子场论", "reason": "论文方向极窄，指向特定研究经历"},
+        {"text": "全国前10名", "reason": "竞赛名次要求高度限定"},
+    ],
+}, ensure_ascii=False)
+
 _FEWSHOT_USER_NORMAL = "招聘5名行政管理人员，要求本科及以上学历，管理类相关专业，年龄35周岁以下。"
 
 _FEWSHOT_ASSISTANT_NORMAL = json.dumps({
@@ -68,6 +105,8 @@ def build_messages(text: str) -> list[dict]:
         {"role": "system", "content": system},
         {"role": "user", "content": _FEWSHOT_USER},
         {"role": "assistant", "content": _FEWSHOT_ASSISTANT},
+        {"role": "user", "content": _FEWSHOT_USER_ACADEMIC},
+        {"role": "assistant", "content": _FEWSHOT_ASSISTANT_ACADEMIC},
         {"role": "user", "content": _FEWSHOT_USER_NORMAL},
         {"role": "assistant", "content": _FEWSHOT_ASSISTANT_NORMAL},
         {"role": "user", "content": f"请分析以下招聘公告：\n{text}"},

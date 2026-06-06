@@ -1,179 +1,151 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { RouterView, RouterLink, useRoute } from 'vue-router'
+import { computed } from 'vue'
 
-const text = ref('')
-const loading = ref(false)
-const error = ref('')
-const result = ref(null)
-
-const levelLabel = { low: '低疑似', mid: '中疑似', high: '高疑似' }
-const levelColor = { low: '#16a34a', mid: '#d97706', high: '#dc2626' }
-
-const score = computed(() => result.value?.analysis.suspicion_score ?? 0)
-const level = computed(() => result.value?.analysis.level ?? 'low')
-
-async function submit() {
-  error.value = ''
-  result.value = null
-  if (!text.value.trim()) {
-    error.value = '请粘贴招聘公告正文'
-    return
-  }
-  loading.value = true
-  try {
-    const resp = await fetch('/api/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: text.value }),
-    })
-    if (!resp.ok) throw new Error('分析失败，请稍后重试')
-    result.value = await resp.json()
-  } catch (e) {
-    error.value = e.message
-  } finally {
-    loading.value = false
-  }
-}
+const route = useRoute()
+const isSubmit = computed(() => route.path === '/submit')
 </script>
 
 <template>
-  <main class="wrap">
-    <h1>萝卜岗识别</h1>
-    <p class="sub">粘贴一份事业单位 / 国企招聘公告，AI 分析其"疑似萝卜岗"程度。</p>
-
-    <textarea
-      v-model="text"
-      rows="10"
-      placeholder="在此粘贴招聘公告正文……"
-    ></textarea>
-    <button :disabled="loading" @click="submit">
-      {{ loading ? '分析中…' : '开始分析' }}
-    </button>
-    <p v-if="error" class="error">{{ error }}</p>
-
-    <section v-if="result" class="report">
-      <div class="score" :style="{ borderColor: levelColor[level] }">
-        <div class="num" :style="{ color: levelColor[level] }">{{ score }}</div>
-        <div class="lvl" :style="{ color: levelColor[level] }">
-          {{ levelLabel[level] }}
-        </div>
+  <div id="root">
+    <nav class="topnav">
+      <RouterLink to="/" class="logo">
+        <span class="logo-icon">⚖</span>
+        <span class="logo-text">萝卜岗识别</span>
+      </RouterLink>
+      <div class="nav-links">
+        <RouterLink to="/" class="nav-link" exact-active-class="active">案件库</RouterLink>
+        <RouterLink to="/submit" class="nav-link" active-class="active">
+          <span class="submit-btn">提交公告</span>
+        </RouterLink>
       </div>
-
-      <h3>分析理由</h3>
-      <p>{{ result.analysis.reasoning }}</p>
-
-      <h3 v-if="result.analysis.hit_features.length">命中的可疑特征</h3>
-      <ul>
-        <li v-for="(f, i) in result.analysis.hit_features" :key="i">
-          <strong>{{ f.key }}</strong>：{{ f.evidence }}
-          <em v-if="f.quote">（"{{ f.quote }}"）</em>
-        </li>
-      </ul>
-
-      <h3 v-if="result.analysis.highlights.length">可疑条件原文</h3>
-      <ul>
-        <li v-for="(h, i) in result.analysis.highlights" :key="i">
-          <mark>{{ h.text }}</mark> — {{ h.reason }}
-        </li>
-      </ul>
-    </section>
-
-    <footer class="disclaimer">
-      免责声明：本结果由 AI 基于公开招聘文本自动推测，仅供参考，<strong>不构成任何确定性结论</strong>，
-      不针对任何具体单位或个人。如有异议可申请纠错。
-    </footer>
-  </main>
+    </nav>
+    <RouterView v-slot="{ Component }">
+      <Transition name="page" mode="out-in">
+        <component :is="Component" />
+      </Transition>
+    </RouterView>
+  </div>
 </template>
 
 <style>
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, 'Microsoft YaHei', sans-serif;
-  background: #f8fafc;
-  color: #1e293b;
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #07070C;
+  --surface: #0E0E16;
+  --surface-2: #131320;
+  --border: rgba(255,255,255,0.07);
+  --border-2: rgba(255,255,255,0.04);
+
+  --red: #E8192C;
+  --red-soft: rgba(232,25,44,0.13);
+  --amber: #E87820;
+  --amber-soft: rgba(232,120,32,0.13);
+  --teal: #12B89A;
+  --teal-soft: rgba(18,184,154,0.13);
+
+  --text: #DDD5C8;
+  --text-2: #7A7585;
+  --text-3: #3A3548;
+
+  --nav-h: 56px;
+
+  --ff-display: 'ZCOOL XiaoWei', 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+  --ff-mono: 'Space Mono', 'Courier New', monospace;
+  --ff-body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
-.wrap {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 32px 20px;
-}
-
-h1 {
-  margin-bottom: 4px;
-}
-
-.sub {
-  color: #64748b;
-  margin-top: 0;
-}
-
-textarea {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 15px;
-}
-
-button {
-  margin-top: 12px;
-  padding: 10px 24px;
-  border: none;
-  border-radius: 8px;
-  background: #2563eb;
-  color: #fff;
-  font-size: 15px;
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.error {
-  color: #dc2626;
-}
-
-.report {
-  margin-top: 24px;
-  padding: 20px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-.score {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 12px 20px;
-  border: 3px solid;
-  border-radius: 12px;
-}
-
-.score .num {
-  font-size: 40px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.score .lvl {
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--ff-body);
   font-size: 14px;
-  margin-top: 4px;
-}
-
-mark {
-  background: #fef08a;
-  padding: 0 2px;
-}
-
-.disclaimer {
-  margin-top: 28px;
-  font-size: 12px;
-  color: #94a3b8;
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
+
+#root { min-height: 100vh; }
+
+/* ── Top Nav ─────────────────────────────────────────────── */
+.topnav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  background: rgba(7,7,12,0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--text);
+  transition: opacity 0.2s;
+}
+.logo:hover { opacity: 0.8; }
+
+.logo-icon {
+  font-size: 18px;
+  opacity: 0.7;
+}
+
+.logo-text {
+  font-family: var(--ff-display);
+  font-size: 16px;
+  letter-spacing: 0.04em;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--text-2);
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+}
+.nav-link:hover { color: var(--text); background: var(--surface); }
+.nav-link.active { color: var(--text); }
+
+.submit-btn {
+  display: inline-block;
+  padding: 5px 14px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--text);
+  letter-spacing: 0.03em;
+  transition: border-color 0.2s, background 0.2s;
+}
+.nav-link:hover .submit-btn,
+.nav-link.active .submit-btn {
+  border-color: var(--red);
+  background: var(--red-soft);
+  color: #FF5566;
+}
+
+/* ── Page Transitions ────────────────────────────────────── */
+.page-enter-active, .page-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.page-enter-from { opacity: 0; transform: translateY(8px); }
+.page-leave-to   { opacity: 0; transform: translateY(-6px); }
+
+/* ── Shared utilities ────────────────────────────────────── */
+a { color: inherit; }
 </style>

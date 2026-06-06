@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 class AnalyzeRequest(BaseModel):
     text: str = Field(min_length=1)
+    source_url: str | None = None
 
 
 class HitFeatureOut(BaseModel):
@@ -41,5 +42,6 @@ class AnalysisOut(BaseModel):
 
 
 class AnalyzeResponse(BaseModel):
+    source_url: str | None = None
     position: PositionOut
     analysis: AnalysisOut
