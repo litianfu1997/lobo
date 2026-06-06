@@ -10,7 +10,7 @@ const isSubmit = computed(() => route.path === '/submit')
   <div id="root">
     <nav class="topnav">
       <RouterLink to="/" class="logo">
-        <span class="logo-icon">⚖</span>
+        <span class="logo-icon">🥕</span>
         <span class="logo-text">萝卜岗识别</span>
       </RouterLink>
       <div class="nav-links">
@@ -32,28 +32,46 @@ const isSubmit = computed(() => route.path === '/submit')
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #07070C;
-  --surface: #0E0E16;
-  --surface-2: #131320;
-  --border: rgba(255,255,255,0.07);
-  --border-2: rgba(255,255,255,0.04);
+  /* ── Carrot warm palette — healing / fresh ── */
+  --carrot:        #ED8936;
+  --carrot-light:  #FBD38D;
+  --carrot-deep:   #DD6B20;
+  --carrot-soft:   #FFF8F0;
 
-  --red: #E8192C;
-  --red-soft: rgba(232,25,44,0.13);
-  --amber: #E87820;
-  --amber-soft: rgba(232,120,32,0.13);
-  --teal: #12B89A;
-  --teal-soft: rgba(18,184,154,0.13);
+  /* ── Backgrounds ── */
+  --bg:            #FBF7F0;
+  --surface:       #FFFFFF;
+  --surface-2:     #FFF9F2;
+  --surface-3:     #FFF3E6;
 
-  --text: #DDD5C8;
-  --text-2: #7A7585;
-  --text-3: #3A3548;
+  /* ── Borders ── */
+  --border:        rgba(200,170,130,0.2);
+  --border-2:      rgba(200,170,130,0.1);
 
-  --nav-h: 56px;
+  /* ── Suspicion levels ── */
+  --red:           #E53E3E;
+  --red-soft:      rgba(229,62,62,0.08);
+  --amber:         #ED8936;
+  --amber-soft:    rgba(237,137,54,0.08);
+  --green:         #48BB78;
+  --green-soft:    rgba(72,187,120,0.08);
 
-  --ff-display: 'ZCOOL XiaoWei', 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
-  --ff-mono: 'Space Mono', 'Courier New', monospace;
-  --ff-body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  /* ── Text ── */
+  --text:          #3D3228;
+  --text-2:        #8B7E6A;
+  --text-3:        #B8AD9E;
+
+  /* ── Misc ── */
+  --nav-h:         56px;
+  --radius:        10px;
+  --shadow-sm:     0 1px 3px rgba(120,90,50,0.06);
+  --shadow-md:     0 4px 16px rgba(120,90,50,0.08);
+  --shadow-lg:     0 8px 30px rgba(120,90,50,0.10);
+
+  /* ── Typography ── */
+  --ff-display: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+  --ff-mono:    'JetBrains Mono', 'Courier New', monospace;
+  --ff-body:    'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
 html, body {
@@ -78,31 +96,32 @@ html, body {
   align-items: center;
   justify-content: space-between;
   padding: 0 32px;
-  background: rgba(7,7,12,0.88);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(251,247,240,0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   text-decoration: none;
   color: var(--text);
   transition: opacity 0.2s;
 }
-.logo:hover { opacity: 0.8; }
+.logo:hover { opacity: 0.85; }
 
 .logo-icon {
-  font-size: 18px;
-  opacity: 0.7;
+  font-size: 22px;
 }
 
 .logo-text {
   font-family: var(--ff-display);
-  font-size: 16px;
+  font-size: 17px;
+  font-weight: 600;
   letter-spacing: 0.04em;
+  color: var(--carrot-deep);
 }
 
 .nav-links {
@@ -116,27 +135,29 @@ html, body {
   color: var(--text-2);
   font-size: 13px;
   padding: 6px 14px;
-  border-radius: 6px;
+  border-radius: 8px;
   transition: color 0.2s, background 0.2s;
 }
-.nav-link:hover { color: var(--text); background: var(--surface); }
+.nav-link:hover { color: var(--text); background: var(--surface-3); }
 .nav-link.active { color: var(--text); }
 
 .submit-btn {
   display: inline-block;
-  padding: 5px 14px;
-  border: 1px solid var(--border);
+  padding: 6px 16px;
+  border: 1px solid var(--carrot-light);
   border-radius: 20px;
   font-size: 12px;
-  color: var(--text);
+  font-weight: 500;
+  color: var(--carrot-deep);
   letter-spacing: 0.03em;
-  transition: border-color 0.2s, background 0.2s;
+  background: var(--carrot-soft);
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
 .nav-link:hover .submit-btn,
 .nav-link.active .submit-btn {
-  border-color: var(--red);
-  background: var(--red-soft);
-  color: #FF5566;
+  border-color: var(--carrot);
+  background: rgba(237,137,54,0.12);
+  box-shadow: 0 2px 8px rgba(237,137,54,0.15);
 }
 
 /* ── Page Transitions ────────────────────────────────────── */

@@ -26,9 +26,10 @@ const FEATURE_NAMES = {
   obscure_publish:        '渠道隐蔽',
 }
 
-const LEVEL_COLOR = { high:'#E8192C', mid:'#E87820', low:'#12B89A' }
+const LEVEL_COLOR = { high:'#E53E3E', mid:'#ED8936', low:'#48BB78' }
 const LEVEL_LABEL = { high:'高疑似',   mid:'中疑似',   low:'低疑似' }
-const LEVEL_SOFT  = { high:'rgba(232,25,44,0.1)', mid:'rgba(232,120,32,0.1)', low:'rgba(18,184,154,0.1)' }
+const LEVEL_SOFT  = { high:'rgba(229,62,62,0.08)', mid:'rgba(237,137,54,0.08)', low:'rgba(72,187,120,0.08)' }
+const LEVEL_BG    = { high:'#FFF5F5', mid:'#FFFAF0', low:'#F0FFF4' }
 
 const highCount = computed(() => items.value.filter(i => i.level === 'high').length)
 const midCount  = computed(() => items.value.filter(i => i.level === 'mid').length)
@@ -67,28 +68,24 @@ onMounted(async () => {
           <p class="page-sub">按萝卜岗疑似度由高到低排列</p>
         </div>
         <div v-if="!loading && !error" class="header-stats">
-          <div class="stat">
-            <span class="stat-num" style="color:#E8192C">{{ highCount }}</span>
+          <div class="stat" style="--sc:#E53E3E; --sb:#FFF5F5">
+            <span class="stat-num">{{ highCount }}</span>
             <span class="stat-lbl">高疑似</span>
           </div>
-          <div class="stat-sep"></div>
-          <div class="stat">
-            <span class="stat-num" style="color:#E87820">{{ midCount }}</span>
+          <div class="stat" style="--sc:#ED8936; --sb:#FFFAF0">
+            <span class="stat-num">{{ midCount }}</span>
             <span class="stat-lbl">中疑似</span>
           </div>
-          <div class="stat-sep"></div>
-          <div class="stat">
-            <span class="stat-num" style="color:#12B89A">{{ lowCount }}</span>
+          <div class="stat" style="--sc:#48BB78; --sb:#F0FFF4">
+            <span class="stat-num">{{ lowCount }}</span>
             <span class="stat-lbl">低疑似</span>
           </div>
-          <div class="stat-sep"></div>
-          <div class="stat">
+          <div class="stat stat-total">
             <span class="stat-num" style="color:var(--text-2)">{{ total }}</span>
             <span class="stat-lbl">共计</span>
           </div>
         </div>
       </div>
-      <div class="header-rule"></div>
     </header>
 
     <!-- ── Loading ── -->
@@ -99,13 +96,13 @@ onMounted(async () => {
 
     <!-- ── Error ── -->
     <div v-else-if="error" class="state-box">
-      <div class="state-icon">⚠</div>
+      <div class="state-icon">⚠️</div>
       <p>{{ error }}</p>
     </div>
 
     <!-- ── Empty ── -->
     <div v-else-if="!items.length" class="state-box">
-      <div class="state-icon">⚖</div>
+      <div class="state-icon">🥕</div>
       <h3>档案室空空如也</h3>
       <p>尚无分析记录，先提交一份招聘公告</p>
       <RouterLink to="/submit" class="cta-btn">提交第一条公告 →</RouterLink>
@@ -117,10 +114,10 @@ onMounted(async () => {
         v-for="(item, idx) in items"
         :key="item.analysis_id"
         class="card"
-        :data-rank="pad(idx + 1)"
         :style="{
           '--lc':   LEVEL_COLOR[item.level],
           '--ls':   LEVEL_SOFT[item.level],
+          '--lb':   LEVEL_BG[item.level],
           '--delay': (idx * 0.035) + 's',
         }"
         @click="router.push('/analysis/' + item.analysis_id)"
@@ -134,9 +131,6 @@ onMounted(async () => {
           </div>
           <div class="level-tag">{{ LEVEL_LABEL[item.level] }}</div>
         </div>
-
-        <!-- Divider -->
-        <div class="col-div"></div>
 
         <!-- Info column -->
         <div class="info-col">
@@ -189,21 +183,21 @@ onMounted(async () => {
 
 /* ── Header ───────────────────────────────────────────────── */
 .page-header {
-  padding: 36px 0 0;
+  padding: 32px 0 0;
 }
 .header-inner {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
-  padding-bottom: 20px;
+  padding-bottom: 24px;
   flex-wrap: wrap;
 }
 .page-title {
   font-family: var(--ff-display);
   font-size: 28px;
-  font-weight: normal;
-  letter-spacing: 0.05em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--text);
   line-height: 1.2;
 }
@@ -211,27 +205,30 @@ onMounted(async () => {
   margin-top: 4px;
   font-size: 12px;
   color: var(--text-3);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .header-stats {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
   flex-shrink: 0;
 }
 .stat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
+  padding: 8px 14px;
+  background: var(--sb);
+  border-radius: var(--radius);
 }
 .stat-num {
   font-family: var(--ff-mono);
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   line-height: 1;
+  color: var(--sc);
 }
 .stat-lbl {
   font-size: 10px;
@@ -239,16 +236,8 @@ onMounted(async () => {
   letter-spacing: 0.08em;
   white-space: nowrap;
 }
-.stat-sep {
-  width: 1px;
-  height: 28px;
-  background: var(--border);
-}
-
-.header-rule {
-  height: 1px;
-  background: linear-gradient(to right, var(--red) 0%, var(--border) 40%, transparent 100%);
-  opacity: 0.6;
+.stat-total {
+  background: var(--surface-2);
 }
 
 /* ── Skeleton ─────────────────────────────────────────────── */
@@ -256,18 +245,17 @@ onMounted(async () => {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }
 }
-.skeleton-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.skeleton-list { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
 .skeleton-card {
   height: 90px;
-  border-radius: 6px;
+  border-radius: var(--radius);
   background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
   opacity: 0;
   animation-fill-mode: both;
-  /* fade-in delay from parent */
+  box-shadow: var(--shadow-sm);
 }
-/* give skeleton cards a fade-in to avoid flash */
 @keyframes skeletonAppear { to { opacity: 1; } }
 .skeleton-card { animation: skeletonAppear 0.3s ease both, shimmer 1.4s 0.3s ease-in-out infinite; }
 
@@ -277,27 +265,32 @@ onMounted(async () => {
   text-align: center;
   color: var(--text-2);
 }
-.state-icon { font-size: 40px; margin-bottom: 16px; opacity: 0.5; }
-.state-box h3 { font-family: var(--ff-display); font-size: 18px; margin-bottom: 8px; color: var(--text); font-weight: normal; }
+.state-icon { font-size: 44px; margin-bottom: 16px; }
+.state-box h3 { font-family: var(--ff-display); font-size: 18px; margin-bottom: 8px; color: var(--text); font-weight: 600; }
 .state-box p  { font-size: 13px; color: var(--text-2); margin-bottom: 20px; }
 .cta-btn {
   display: inline-block;
-  padding: 9px 22px;
-  border: 1px solid var(--red);
-  border-radius: 20px;
-  color: var(--red);
+  padding: 10px 24px;
+  background: var(--carrot);
+  color: #fff;
+  border-radius: 24px;
   text-decoration: none;
   font-size: 13px;
-  transition: background 0.2s;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(237,137,54,0.25);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-.cta-btn:hover { background: var(--red-soft); }
+.cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(237,137,54,0.3);
+}
 
 /* ── Cards list ───────────────────────────────────────────── */
 .cards {
   margin-top: 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
 }
 
 /* ── Individual Card ──────────────────────────────────────── */
@@ -312,45 +305,32 @@ onMounted(async () => {
   align-items: center;
   gap: 0;
   background: var(--surface);
-  border: 1px solid var(--border-2);
-  border-left: 3px solid var(--lc);
-  border-radius: 0 8px 8px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   padding: 0;
   cursor: pointer;
   overflow: hidden;
-  transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   animation: fadeUp 0.3s ease both;
   animation-delay: var(--delay);
 }
-.card::after {
-  content: attr(data-rank);
-  position: absolute;
-  right: 14px;
-  bottom: -12px;
-  font-family: var(--ff-mono);
-  font-size: 80px;
-  font-weight: 700;
-  color: rgba(255,255,255,0.028);
-  line-height: 1;
-  pointer-events: none;
-  user-select: none;
-}
 .card:hover {
-  transform: translateY(-2px) translateX(2px);
-  background: var(--surface-2);
-  box-shadow: 0 6px 24px rgba(0,0,0,0.4), 0 0 0 1px var(--lc) inset,
-              -4px 0 20px var(--ls);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md), 0 0 0 1px var(--lc);
 }
 
 /* ── Score column ─────────────────────────────────────────── */
 .score-col {
   flex-shrink: 0;
-  width: 90px;
+  width: 88px;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 16px 10px 16px 16px;
   gap: 4px;
+  background: var(--lb);
+  border-radius: var(--radius) 0 0 var(--radius);
 }
 .rank-label {
   font-family: var(--ff-mono);
@@ -360,15 +340,15 @@ onMounted(async () => {
 }
 .score-num {
   font-family: var(--ff-mono);
-  font-size: 38px;
+  font-size: 36px;
   font-weight: 700;
   line-height: 1;
   color: var(--lc);
 }
 .score-track {
-  width: 100%;
+  width: 80%;
   height: 3px;
-  background: rgba(255,255,255,0.06);
+  background: var(--border);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -385,24 +365,16 @@ onMounted(async () => {
   color: var(--lc);
 }
 
-/* ── Column divider ───────────────────────────────────────── */
-.col-div {
-  flex-shrink: 0;
-  width: 1px;
-  height: 60px;
-  background: var(--border);
-  margin: 0 4px;
-}
-
 /* ── Info column ──────────────────────────────────────────── */
 .info-col {
   flex: 1;
-  padding: 14px 12px 14px 16px;
+  padding: 14px 16px;
   min-width: 0;
 }
 .org-name {
   font-family: var(--ff-display);
-  font-size: 16px;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
@@ -421,42 +393,39 @@ onMounted(async () => {
 .pos-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 5px;
   margin-bottom: 8px;
 }
 .chip {
   display: inline-block;
-  padding: 1px 7px;
-  border-radius: 3px;
+  padding: 2px 8px;
+  border-radius: 4px;
   background: var(--surface-2);
-  border: 1px solid var(--border);
   font-size: 10px;
   color: var(--text-2);
   white-space: nowrap;
 }
-.chip-major { color: var(--lc); border-color: var(--lc); background: var(--ls); }
-.chip-link { color: var(--teal); border-color: rgba(18,184,154,0.3); background: var(--teal-soft); text-decoration: none; cursor: pointer; }
-.chip-link:hover { border-color: var(--teal); }
+.chip-major { color: var(--carrot-deep); background: var(--amber-soft); }
+.chip-link { color: var(--green); background: var(--green-soft); text-decoration: none; cursor: pointer; }
+.chip-link:hover { text-decoration: underline; }
 
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 5px;
 }
 .tag {
   display: inline-block;
-  padding: 1px 7px;
-  border-radius: 2px;
-  border: 1px solid var(--lc);
+  padding: 2px 8px;
+  border-radius: 4px;
   background: var(--ls);
   font-size: 10px;
   color: var(--lc);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   white-space: nowrap;
 }
 .tag-more {
-  border-color: var(--border);
-  background: transparent;
+  background: var(--surface-2);
   color: var(--text-3);
 }
 
@@ -467,7 +436,7 @@ onMounted(async () => {
   flex-direction: column;
   align-items: flex-end;
   gap: 6px;
-  padding: 14px 20px 14px 8px;
+  padding: 14px 18px 14px 8px;
 }
 .date-text {
   font-family: var(--ff-mono);

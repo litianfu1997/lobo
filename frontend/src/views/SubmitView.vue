@@ -9,9 +9,10 @@ const loading = ref(false)
 const error   = ref('')
 const result  = ref(null)
 
-const LEVEL_COLOR = { low:'#12B89A', mid:'#E87820', high:'#E8192C' }
+const LEVEL_COLOR = { low:'#48BB78', mid:'#ED8936', high:'#E53E3E' }
 const LEVEL_LABEL = { low:'低疑似',   mid:'中疑似',   high:'高疑似' }
-const LEVEL_SOFT  = { low:'rgba(18,184,154,0.1)', mid:'rgba(232,120,32,0.1)', high:'rgba(232,25,44,0.1)' }
+const LEVEL_SOFT  = { low:'rgba(72,187,120,0.08)', mid:'rgba(237,137,54,0.08)', high:'rgba(229,62,62,0.08)' }
+const LEVEL_BG    = { low:'#F0FFF4', mid:'#FFFAF0', high:'#FFF5F5' }
 const FEATURE_NAMES = {
   major_too_narrow:       '专业限定过窄',
   rare_edu_combo:         '院校学历罕见叠加',
@@ -31,8 +32,9 @@ const FEATURE_NAMES = {
 }
 
 const ana   = computed(() => result.value?.analysis)
-const lc    = computed(() => ana.value ? LEVEL_COLOR[ana.value.level] : '#7A7585')
+const lc    = computed(() => ana.value ? LEVEL_COLOR[ana.value.level] : '#8B7E6A')
 const ls    = computed(() => ana.value ? LEVEL_SOFT[ana.value.level]  : 'transparent')
+const lb    = computed(() => ana.value ? LEVEL_BG[ana.value.level]    : 'transparent')
 
 async function submit() {
   error.value  = ''
@@ -60,10 +62,9 @@ async function submit() {
     <header class="page-header">
       <h1 class="page-title">提交公告</h1>
       <p class="page-sub">粘贴事业单位 / 国企招聘公告，AI 分析其萝卜岗嫌疑</p>
-      <div class="header-rule"></div>
     </header>
 
-    <div class="form-section">
+    <div class="form-card">
       <input
         v-model="sourceUrl"
         type="url"
@@ -82,7 +83,7 @@ async function submit() {
         <span class="char-count">{{ text.length }} 字</span>
         <button class="submit-btn" :disabled="loading || !text.trim()" @click="submit">
           <span v-if="loading" class="btn-spin"></span>
-          {{ loading ? '分析中…' : '开始分析' }}
+          {{ loading ? '分析中…' : '🥕 开始分析' }}
         </button>
       </div>
       <p v-if="error" class="error-msg">{{ error }}</p>
@@ -91,7 +92,7 @@ async function submit() {
     <!-- Result -->
     <div v-if="result" class="result-section">
       <!-- Score hero -->
-      <div class="result-hero" :style="{ '--lc': lc, '--ls': ls }">
+      <div class="result-hero" :style="{ '--lc': lc, '--ls': ls, '--lb': lb }">
         <div class="result-score-block">
           <div class="result-num">{{ ana.suspicion_score }}</div>
           <div class="result-track">
@@ -110,25 +111,25 @@ async function submit() {
       </div>
 
       <!-- Features -->
-      <div v-if="ana.hit_features?.length" class="result-features">
-        <div class="result-section-label">命中特征</div>
+      <div v-if="ana.hit_features?.length" class="result-block">
+        <div class="block-label">命中特征</div>
         <div class="feat-tags">
           <span v-for="f in ana.hit_features" :key="f.key" class="feat-tag"
-                :style="{ borderColor: lc, color: lc, background: ls }">
+                :style="{ color: lc, background: ls }">
             {{ FEATURE_NAMES[f.key] || f.key }}
           </span>
         </div>
       </div>
 
       <!-- Reasoning -->
-      <div v-if="ana.reasoning" class="result-reasoning">
-        <div class="result-section-label">分析理由</div>
+      <div v-if="ana.reasoning" class="result-block">
+        <div class="block-label">分析理由</div>
         <p>{{ ana.reasoning }}</p>
       </div>
 
       <!-- Highlights -->
-      <div v-if="ana.highlights?.length" class="result-highlights">
-        <div class="result-section-label">可疑条款原文</div>
+      <div v-if="ana.highlights?.length" class="result-block">
+        <div class="block-label">可疑条款原文</div>
         <div v-for="(h, i) in ana.highlights" :key="i" class="highlight-row">
           <mark>{{ h.text }}</mark>
           <span class="hl-reason">{{ h.reason }}</span>
@@ -149,43 +150,47 @@ async function submit() {
   padding: 0 20px 60px;
 }
 
-.page-header { padding: 36px 0 0; }
+.page-header { padding: 32px 0 20px; }
 .page-title {
   font-family: var(--ff-display);
   font-size: 26px;
-  font-weight: normal;
-  letter-spacing: 0.05em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   margin-bottom: 4px;
 }
-.page-sub { font-size: 12px; color: var(--text-3); letter-spacing: 0.04em; margin-bottom: 20px; }
-.header-rule {
-  height: 1px;
-  background: linear-gradient(to right, var(--red) 0%, var(--border) 40%, transparent 100%);
-  opacity: 0.6;
-  margin-bottom: 28px;
-}
+.page-sub { font-size: 12px; color: var(--text-3); letter-spacing: 0.04em; }
 
-/* ── Form ─────────────────────────────────────────────────── */
-.form-section { display: flex; flex-direction: column; gap: 10px; }
+/* ── Form card ────────────────────────────────────────────── */
+.form-card {
+  margin-top: 20px;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 .url-input {
   width: 100%;
-  padding: 12px 16px;
-  background: var(--surface);
+  padding: 11px 16px;
+  background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text);
   font-family: var(--ff-body);
   font-size: 13px;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 .url-input::placeholder { color: var(--text-3); }
-.url-input:focus { border-color: var(--text-3); }
+.url-input:focus { border-color: var(--carrot-light); box-shadow: 0 0 0 3px rgba(237,137,54,0.1); }
 .url-input:disabled { opacity: 0.5; }
 .text-input {
   width: 100%;
-  padding: 16px;
-  background: var(--surface);
+  padding: 14px 16px;
+  background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text);
@@ -194,10 +199,10 @@ async function submit() {
   line-height: 1.7;
   resize: vertical;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 .text-input::placeholder { color: var(--text-3); }
-.text-input:focus { border-color: var(--text-3); }
+.text-input:focus { border-color: var(--carrot-light); box-shadow: 0 0 0 3px rgba(237,137,54,0.1); }
 .text-input:disabled { opacity: 0.5; }
 
 .form-actions {
@@ -214,19 +219,23 @@ async function submit() {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 24px;
-  background: var(--red);
+  padding: 10px 26px;
+  background: var(--carrot);
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: 24px;
   font-family: var(--ff-body);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.1s;
+  box-shadow: 0 4px 12px rgba(237,137,54,0.25);
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.15s;
 }
-.submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-.submit-btn:not(:disabled):hover { opacity: 0.9; transform: translateY(-1px); }
+.submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+.submit-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(237,137,54,0.3);
+}
 
 @keyframes spin { to { transform: rotate(360deg); } }
 .btn-spin {
@@ -241,60 +250,59 @@ async function submit() {
 
 /* ── Result ───────────────────────────────────────────────── */
 .result-section {
-  margin-top: 28px;
+  margin-top: 24px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .result-hero {
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: 24px;
   padding: 24px 28px;
   background: var(--surface);
-  border: 1px solid var(--border-2);
-  border-left: 4px solid var(--lc);
-  border-radius: 0 10px 10px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
   position: relative;
   overflow: hidden;
 }
 .result-hero::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 0% 50%, var(--ls) 0%, transparent 65%);
+  left: 0; top: 0; bottom: 0;
+  width: 120px;
+  background: linear-gradient(to right, var(--lb), transparent);
   pointer-events: none;
 }
 
-.result-score-block { flex-shrink: 0; text-align: center; }
+.result-score-block { flex-shrink: 0; text-align: center; position: relative; }
 .result-num {
   font-family: var(--ff-mono);
-  font-size: 60px;
+  font-size: 56px;
   font-weight: 700;
   line-height: 1;
   color: var(--lc);
 }
 .result-track {
-  width: 64px;
+  width: 60px;
   height: 3px;
-  background: rgba(255,255,255,0.08);
+  background: var(--border);
   border-radius: 2px;
   margin: 8px auto 0;
   overflow: hidden;
 }
 .result-fill { height: 100%; background: var(--lc); border-radius: 2px; }
 
-.result-meta { flex: 1; }
+.result-meta { flex: 1; position: relative; }
 .level-badge {
   display: inline-block;
-  padding: 2px 10px;
-  border: 1px solid var(--lc);
+  padding: 3px 12px;
+  border-radius: 12px;
   background: var(--ls);
-  border-radius: 3px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.08em;
   color: var(--lc);
   margin-bottom: 8px;
 }
@@ -302,39 +310,40 @@ async function submit() {
 .view-detail-btn {
   background: none;
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 8px;
   color: var(--text-2);
   font-family: var(--ff-body);
   font-size: 12px;
-  padding: 5px 12px;
+  padding: 6px 14px;
   cursor: pointer;
   transition: border-color 0.2s, color 0.2s;
 }
 .view-detail-btn:hover { border-color: var(--lc); color: var(--lc); }
 
-/* Result sub-sections */
-.result-features, .result-reasoning, .result-highlights {
-  padding: 16px 18px;
+/* Result blocks */
+.result-block {
+  padding: 16px 20px;
   background: var(--surface);
-  border: 1px solid var(--border-2);
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
 }
-.result-section-label {
+.block-label {
   font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-3);
   margin-bottom: 10px;
+  font-weight: 500;
 }
-.feat-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.feat-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .feat-tag {
-  padding: 2px 9px;
-  border-radius: 3px;
-  border: 1px solid;
+  padding: 3px 10px;
+  border-radius: 6px;
   font-size: 12px;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
 }
-.result-reasoning p { font-size: 14px; color: var(--text); line-height: 1.8; }
+.result-block p { font-size: 14px; color: var(--text); line-height: 1.8; }
 
 .highlight-row {
   padding: 8px 0;
@@ -345,10 +354,10 @@ async function submit() {
 }
 .highlight-row:last-child { border-bottom: none; }
 .highlight-row mark {
-  background: rgba(254,240,138,0.18);
-  color: #FEF08A;
-  padding: 1px 4px;
-  border-radius: 2px;
+  background: rgba(237,137,54,0.12);
+  color: var(--carrot-deep);
+  padding: 1px 6px;
+  border-radius: 3px;
   font-size: 14px;
 }
 .hl-reason { font-size: 12px; color: var(--text-2); }

@@ -26,9 +26,10 @@ const FEATURE_NAMES = {
   obscure_publish:        '发布渠道隐蔽',
 }
 
-const LEVEL_COLOR = { high:'#E8192C', mid:'#E87820', low:'#12B89A' }
+const LEVEL_COLOR = { high:'#E53E3E', mid:'#ED8936', low:'#48BB78' }
 const LEVEL_LABEL = { high:'高疑似',   mid:'中疑似',   low:'低疑似' }
-const LEVEL_SOFT  = { high:'rgba(232,25,44,0.1)', mid:'rgba(232,120,32,0.1)', low:'rgba(18,184,154,0.1)' }
+const LEVEL_SOFT  = { high:'rgba(229,62,62,0.08)', mid:'rgba(237,137,54,0.08)', low:'rgba(72,187,120,0.08)' }
+const LEVEL_BG    = { high:'#FFF5F5', mid:'#FFFAF0', low:'#F0FFF4' }
 const LEVEL_DESC  = {
   high: '该岗位招聘条件存在多项高度具体的限制，理论上符合条件的候选人极少，萝卜岗嫌疑显著。',
   mid:  '该岗位招聘条件存在部分可疑限制，不排除为特定人选量身定制的可能性。',
@@ -38,8 +39,9 @@ const LEVEL_DESC  = {
 const ana = computed(() => data.value?.analysis)
 const pos = computed(() => data.value?.position)
 const sourceUrl = computed(() => data.value?.source_url)
-const lc  = computed(() => ana.value ? LEVEL_COLOR[ana.value.level] : '#7A7585')
+const lc  = computed(() => ana.value ? LEVEL_COLOR[ana.value.level] : '#8B7E6A')
 const ls  = computed(() => ana.value ? LEVEL_SOFT[ana.value.level] : 'transparent')
+const lb  = computed(() => ana.value ? LEVEL_BG[ana.value.level]   : 'transparent')
 
 const posFields = computed(() => {
   if (!pos.value) return []
@@ -84,7 +86,7 @@ onMounted(async () => {
 
     <!-- ── Error ── -->
     <div v-else-if="error" class="state-box">
-      <div class="state-icon">⚠</div>
+      <div class="state-icon">⚠️</div>
       <p>{{ error }}</p>
     </div>
 
@@ -92,7 +94,7 @@ onMounted(async () => {
     <template v-else-if="data">
 
       <!-- Hero -->
-      <div class="hero" :style="{ '--lc': lc, '--ls': ls }">
+      <div class="hero" :style="{ '--lc': lc, '--ls': ls, '--lb': lb }">
         <div class="hero-score-block">
           <div class="hero-num">{{ ana.suspicion_score }}</div>
           <div class="hero-track">
@@ -112,7 +114,7 @@ onMounted(async () => {
       <!-- Position Info -->
       <section class="section">
         <h3 class="section-title">
-          <span class="section-line"></span>岗位信息
+          <span class="section-dot"></span>岗位信息
         </h3>
         <div class="info-grid">
           <div v-for="[label, value] in posFields" :key="label" class="info-row">
@@ -129,12 +131,12 @@ onMounted(async () => {
       <!-- Hit Features -->
       <section v-if="ana.hit_features && ana.hit_features.length" class="section">
         <h3 class="section-title">
-          <span class="section-line"></span>命中特征
+          <span class="section-dot"></span>命中特征
           <span class="feature-count">{{ ana.hit_features.length }}</span>
         </h3>
         <div class="features-grid">
           <div v-for="f in ana.hit_features" :key="f.key" class="feature-card"
-               :style="{ '--lc': lc, '--ls': ls }">
+               :style="{ '--lc': lc, '--ls': ls, '--lb': lb }">
             <div class="feature-name">{{ FEATURE_NAMES[f.key] || f.key }}</div>
             <div class="feature-evidence">{{ f.evidence }}</div>
             <div v-if="f.quote" class="feature-quote">
@@ -147,7 +149,7 @@ onMounted(async () => {
       <!-- Reasoning -->
       <section v-if="ana.reasoning" class="section">
         <h3 class="section-title">
-          <span class="section-line"></span>综合分析
+          <span class="section-dot"></span>综合分析
         </h3>
         <div class="reasoning-box">
           <p class="reasoning-text">{{ ana.reasoning }}</p>
@@ -157,7 +159,7 @@ onMounted(async () => {
       <!-- Highlights -->
       <section v-if="ana.highlights && ana.highlights.length" class="section">
         <h3 class="section-title">
-          <span class="section-line"></span>可疑条款原文
+          <span class="section-dot"></span>可疑条款原文
         </h3>
         <div class="highlights-list">
           <div v-for="(h, i) in ana.highlights" :key="i" class="highlight-item">
@@ -206,7 +208,7 @@ onMounted(async () => {
   padding: 4px 0;
   transition: color 0.16s;
 }
-.back-btn:hover { color: var(--text); }
+.back-btn:hover { color: var(--carrot-deep); }
 
 /* ── State ────────────────────────────────────────────────── */
 .state-box {
@@ -214,13 +216,13 @@ onMounted(async () => {
   text-align: center;
   color: var(--text-2);
 }
-.state-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.5; }
+.state-icon { font-size: 36px; margin-bottom: 12px; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin {
   width: 32px; height: 32px;
-  border: 2px solid var(--border);
-  border-top-color: var(--text-2);
+  border: 3px solid var(--border);
+  border-top-color: var(--carrot);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin: 80px auto;
@@ -230,21 +232,22 @@ onMounted(async () => {
 .hero {
   display: flex;
   align-items: center;
-  gap: 32px;
-  margin: 24px 0 0;
+  gap: 28px;
+  margin: 20px 0 0;
   padding: 28px 32px;
   background: var(--surface);
-  border: 1px solid var(--border-2);
-  border-left: 4px solid var(--lc);
-  border-radius: 0 12px 12px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
   position: relative;
   overflow: hidden;
 }
 .hero::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 0% 50%, var(--ls) 0%, transparent 70%);
+  left: 0; top: 0; bottom: 0;
+  width: 140px;
+  background: linear-gradient(to right, var(--lb), transparent);
   pointer-events: none;
 }
 
@@ -255,10 +258,11 @@ onMounted(async () => {
   align-items: center;
   gap: 6px;
   min-width: 100px;
+  position: relative;
 }
 .hero-num {
   font-family: var(--ff-mono);
-  font-size: 72px;
+  font-size: 68px;
   font-weight: 700;
   line-height: 1;
   color: var(--lc);
@@ -266,7 +270,7 @@ onMounted(async () => {
 .hero-track {
   width: 80px;
   height: 4px;
-  background: rgba(255,255,255,0.08);
+  background: var(--border);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -282,23 +286,22 @@ onMounted(async () => {
   text-transform: uppercase;
 }
 
-.hero-verdict { flex: 1; min-width: 0; }
+.hero-verdict { flex: 1; min-width: 0; position: relative; }
 .verdict-badge {
   display: inline-block;
-  padding: 2px 10px;
-  border-radius: 3px;
-  border: 1px solid var(--lc);
+  padding: 3px 12px;
+  border-radius: 12px;
   background: var(--ls);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--lc);
   margin-bottom: 10px;
 }
 .hero-org {
   font-family: var(--ff-display);
   font-size: 22px;
-  font-weight: normal;
+  font-weight: 600;
   color: var(--text);
   margin-bottom: 4px;
   line-height: 1.3;
@@ -315,31 +318,31 @@ onMounted(async () => {
 }
 
 /* ── Sections ─────────────────────────────────────────────── */
-.section { margin-top: 32px; }
+.section { margin-top: 28px; }
 
 .section-title {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 11px;
+  gap: 8px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0.1em;
   color: var(--text-2);
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
-.section-line {
+.section-dot {
   display: inline-block;
-  width: 24px;
-  height: 2px;
-  background: var(--red);
-  border-radius: 1px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--carrot);
   flex-shrink: 0;
 }
 .feature-count {
   margin-left: auto;
   font-family: var(--ff-mono);
   font-size: 18px;
+  font-weight: 700;
   color: var(--text-3);
 }
 
@@ -349,15 +352,16 @@ onMounted(async () => {
   flex-direction: column;
   gap: 0;
   background: var(--surface);
-  border: 1px solid var(--border-2);
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 .info-row {
   display: flex;
   align-items: baseline;
   gap: 16px;
-  padding: 11px 18px;
+  padding: 12px 20px;
   border-bottom: 1px solid var(--border-2);
 }
 .info-row:last-child { border-bottom: none; }
@@ -367,6 +371,7 @@ onMounted(async () => {
   font-size: 11px;
   color: var(--text-3);
   letter-spacing: 0.06em;
+  font-weight: 500;
 }
 .info-value {
   flex: 1;
@@ -376,24 +381,29 @@ onMounted(async () => {
   word-break: break-all;
 }
 .source-link {
-  color: var(--teal, #12B89A);
+  color: var(--green);
   text-decoration: none;
   transition: opacity 0.2s;
 }
-.source-link:hover { opacity: 0.8; text-decoration: underline; }
+.source-link:hover { opacity: 0.75; text-decoration: underline; }
 
 /* ── Features grid ────────────────────────────────────────── */
 .features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 .feature-card {
-  padding: 14px 16px;
+  padding: 16px 18px;
   background: var(--surface);
-  border: 1px solid var(--border-2);
-  border-left: 3px solid var(--lc);
-  border-radius: 0 8px 8px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.feature-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 .feature-name {
   font-size: 12px;
@@ -418,10 +428,11 @@ onMounted(async () => {
 
 /* ── Reasoning ────────────────────────────────────────────── */
 .reasoning-box {
-  padding: 20px 22px;
+  padding: 20px 24px;
   background: var(--surface);
-  border: 1px solid var(--border-2);
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
 }
 .reasoning-text {
   font-size: 14px;
@@ -441,13 +452,15 @@ onMounted(async () => {
   align-items: flex-start;
   padding: 14px 18px;
   background: var(--surface);
-  border: 1px solid var(--border-2);
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
 }
 .highlight-num {
   flex-shrink: 0;
   font-family: var(--ff-mono);
   font-size: 11px;
+  font-weight: 700;
   color: var(--text-3);
   padding-top: 2px;
 }
@@ -459,10 +472,10 @@ onMounted(async () => {
   line-height: 1.5;
 }
 .highlight-text mark {
-  background: rgba(254, 240, 138, 0.2);
-  color: #FEF08A;
-  padding: 1px 4px;
-  border-radius: 2px;
+  background: rgba(237,137,54,0.15);
+  color: var(--carrot-deep);
+  padding: 1px 6px;
+  border-radius: 3px;
 }
 .highlight-reason {
   font-size: 12px;
@@ -471,7 +484,7 @@ onMounted(async () => {
 
 /* ── Model info ───────────────────────────────────────────── */
 .model-info {
-  margin-top: 32px;
+  margin-top: 28px;
   font-family: var(--ff-mono);
   font-size: 10px;
   color: var(--text-3);
